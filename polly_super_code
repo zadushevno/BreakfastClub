@@ -1,0 +1,57 @@
+#зачем писать global если переменная у нас до кода, она не будет автоматом уже глобальная?
+# что такое бот месседж хэндлер
+
+import telebot
+from telebot import types
+
+bot = telebot.TeleBot("1747737968:AAHQm4cfnw54SK2a6M6sUWU7G0ZyzgrJlWA", parse_mode=None)
+
+user_fridge = {}
+product = ""
+amount = ""
+
+@bot.message_handler(commands=["start"])
+def hello(message):
+	if message.text == "/start":
+		bot.send_message (message.from_user.id, "Привет! Этот бот сделает твое утро волшебным и замечательным! Выбери команду /h, чтобы сказать, что есть в твоем холодильнике")
+
+@bot.message_handler(commands=["h"])	
+def u_fridge(message):
+	if message.text == "/h":
+		bot.send_message (message.from_user.id, "Давай откроем холодильник и посмотрим, что там есть..)")
+		bot.send_message (message.from_user.id, "Введите название продукта")
+		bot.register_next_step_handler(message, u_product)
+
+def u_product(message):
+	global product
+	product = message.text
+	bot.send_message (message.from_user.id,"Введите количество продукта")
+	bot.register_next_step_handler(message, u_amount)
+
+def u_amount(message):
+	global amount
+	amount = message.text			
+	
+	keyboard = types.InlineKeyboardMarkup()
+	key_yes = types.InlineKeyboardButton(text='Да', callback_data='yes')
+	keyboard.add(key_yes)
+	key_no = types.InlineKeyboardButton(text='Нет', callback_data='no')
+	keyboard.add(key_no)
+	question = "Хочешь добавить еще?"
+	bot.send_message(message.from_user.id, text = question, reply_markup=keyboard)
+
+	user_fridge[product] = amount
+	
+	user_id = message.from_user.id
+	user_file = str(user_id) + ".txt"
+	with open (user_file, "w", encoding = "utf-8") as f:
+		f.write(str(user_fridge))
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_worker(call):
+	if call.data == "no":
+		bot.send_message(call.message.chat.id, "Окей")
+	elif call.data == "yes":
+		bot.send_message (call.from_user.id, "Введите название продукта")
+		bot.register_next_step_handler(call.message, u_product)
+bot.polling()
