@@ -5,7 +5,7 @@ bot = telebot.TeleBot("1747737968:AAHQm4cfnw54SK2a6M6sUWU7G0ZyzgrJlWA")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-	bot.send_message(message.chat.id, "Доброе утро :) ")
+	bot.send_message(message.chat.id, "Привет! Напиши "хочу завтрак", чтобы я мог предложить тебе рецепты :)")
 @bot.message_handler(content_types=['text'])
 def send_recipes(message):
     if message.text == 'хочу завтрак':
