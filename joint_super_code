@@ -1,11 +1,15 @@
 #зачем писать global если переменная у нас до кода, она не будет автоматом уже глобальная?
+    #нет, переменная вне функции и переменная внутри функции с одинаковыми именами -- не одно и то же, комп хранит инфу про них в разных ячейках памяти как бы
 # что такое бот месседж хэндлер
 # надо решить насчет холодильник и хочу завтрак -- это команды или просто слова?
+    #можно и в команду переделать, но я пыталась сделать так, чтобы бот реагировал на все сообщения со словами "рецепт" и "завтрак", но в какой-то момент он стал реагировать на все :(
+
+#!!!! надо сделать так, чтобы перед добавлением продуктов пользователь видел, что у него есть. если ничего -- сообщ типа "В твоем холодильнике пока ничего нет. Доавить продукт?"
 import telebot
 import json
 from telebot import types
 
-bot = telebot.TeleBot("1747737968:AAHQm4cfnw54SK2a6M6sUWU7G0ZyzgrJlWA", parse_mode=None)
+bot = telebot.TeleBot("1747737968:AAHQm4cfnw54SK2a6M6sUWU7G0ZyzgrJlWA")
 
 user_fridge = {}
 product = ""
@@ -55,6 +59,17 @@ def callback_worker(call):
     elif call.data == "yes":
         bot.send_message (call.from_user.id, "Введите название продукта")
         bot.register_next_step_handler(call.message, u_product)
+    else:
+        f = open('recipes.json', 'r', encoding='utf-8')
+        data = json.load(f)
+        ingredients = ""
+        description = ""
+        for key, value in data[call.data][0].items():
+            ingredients = ingredients + key + ' ' + value + '\n'
+        description = data[call.data][1]
+        recipes_text = '*Ингредиенты:*\n' + ingredients + '\n' + '*Способ приготовления:* \n' + description
+        bot.send_message(call.message.chat.id, recipes_text, parse_mode="Markdown")
+        f.close()
 
 @bot.message_handler(content_types=['text'])
 def send_recipes(message):
@@ -67,16 +82,7 @@ def send_recipes(message):
             list_of_recipes.add(callback_button)
         f.close()
         bot.send_message(message.chat.id, "Вот список доступных завтраков:", reply_markup=list_of_recipes)
-@bot.callback_query_handler(func=lambda call: True)
-def callback_worker(call):
-    f = open('recipes.json', 'r', encoding='utf-8')
-    data = json.load(f)
-    ingredients = ""
-    description = ""
-    for key, value in data[call.data][0].items():
-        ingredients = ingredients + key + ' ' + value + '\n'
-    description = data[call.data][1]
-    recipes_text = '*Ингредиенты:*\n' + ingredients + '\n' + '*Способ приготовления:* \n'+ description
-    bot.send_message(call.message.chat.id, recipes_text, parse_mode="Markdown")
-    f.close()
+#@bot.callback_query_handler(func=lambda call: True)
+#def callback_worker(call):
+
 bot.polling()
