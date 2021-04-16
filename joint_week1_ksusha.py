@@ -104,7 +104,7 @@ def send_recipes(message):
         if breakfasts_are_available:
             bot.send_message(message.chat.id, "Вот список доступных завтраков:", reply_markup=list_of_recipes)
         else:
-            bot.send_message(message.chat.id, 'В твоем холодильнике пока не хватает продуктов для приготовления завтрака. Используй команду /a, чтобы пополнить холодльник :)')
+            bot.send_message(message.chat.id, 'В твоем холодильнике пока не хватает продуктов для приготовления завтрака. Используй команду /a, чтобы пополнить холодильник :)')
 
 def compare_dict(dict1, dict2):
     keys1 = set(dict1.keys())
