@@ -17,9 +17,9 @@ def hello(message):
     if message.text == "/start":
         bot.send_message (message.from_user.id, 'Привет! Этот бот сделает твое утро волшебным и замечательным! Выбери команду /a, чтобы добавить продукты в холодильник. Команду /h, чтобы посмотреть, что в нем есть. Напиши "хочу завтрак", чтобы я мог предложить тебе рецепты :)')
 
-@bot.message_handler(commands=["a"])    
+@bot.message_handler(commands=["add"])    
 def add_fridge(message):
-    if message.text == "/a":
+    if message.text == "/add":
         bot.send_message (message.from_user.id, "Добавим покупочки!")
         bot.send_message (message.from_user.id, "Введите название продукта")
         bot.register_next_step_handler(message, u_product)   
@@ -51,9 +51,9 @@ def u_amount(message):
         json.dump(user_fridge, f, ensure_ascii=False)
 
 
-@bot.message_handler(commands=["h"])  
+@bot.message_handler(commands=["fridge"])  
 def add_fridge(message):
-    if message.text == "/h":
+    if message.text == "/fridge":
         bot.send_message (message.from_user.id, "Давай откроем холодильник и посмотрим, что там есть..)")
         user_id = message.from_user.id
         user_file = str(user_id) + ".txt"
@@ -76,9 +76,9 @@ def add_fridge(message):
 
 
 
-@bot.message_handler(content_types=["text"])
+@bot.message_handler(commands=["breakfast"])
 def send_recipes(message):
-    if message.text == 'з':
+    if message.text == "/breakfast":
         global unclickable_choices
         unclickable_choices = []
         list_of_recipes = types.InlineKeyboardMarkup()
