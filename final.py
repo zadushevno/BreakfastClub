@@ -21,18 +21,27 @@ def hello(message):
     if message.text == "/start":
         bot.send_message (message.from_user.id, "Привет! Этот бот сделает твое утро волшебным и замечательным \u2728" + "\n" + "Используй команду /help, чтобы узнать, что я умею делать \u263a\ufe0f")
 
-@bot.message_handler(commands=["add"])    
+@bot.message_handler(commands=["add"])
 def add_fridge(message):
     if message.text == "/add":
         bot.send_message (message.from_user.id, "Добавим покупочки \U0001F4DD")
         bot.send_message (message.from_user.id, "Введите название продукта")
-        bot.register_next_step_handler(message, u_product)   
+        bot.register_next_step_handler(message, u_product)
 
 def u_product(message):
     global product
-    product = message.text.lower()
-    bot.send_message (message.from_user.id,"Введите количество продукта, например, _100 кг_. Я измеряю в _шт, л, мл, кг, г_", parse_mode="Markdown")
-    bot.register_next_step_handler(message, u_amount)
+    if message.text.startswith("/"):
+        bot.send_message (message.from_user.id,"Команды нельзя класть в холодильник, они невкусные, я точно знаю!")
+        bot.send_message (message.from_user.id, "Введите название съедобного продукта \U0001F4DD")
+        bot.register_next_step_handler(message, u_product)
+    elif input_is_correct(message.text) == False:
+        product = message.text.lower()
+        bot.send_message (message.from_user.id,"Введите количество продукта, например, _100 кг_. Я измеряю в _шт, л, мл, кг, г_", parse_mode="Markdown")
+        bot.register_next_step_handler(message, u_amount)
+    else:
+        bot.send_message (message.from_user.id,"Число нельзя положить в холодильник!")
+        bot.send_message (message.from_user.id, "Введите название съедобного продукта \U0001F4DD")
+        bot.register_next_step_handler(message, u_product)
 
 def u_amount(message):
     global amount
@@ -47,7 +56,7 @@ def u_amount(message):
         keyboard.add(key_no)
         question = "Хочешь добавить еще?"
         bot.send_message(message.from_user.id, text = question, reply_markup=keyboard)
-    
+
         user_id = message.from_user.id
         user_file = str(user_id) + ".txt"
         check_file = os.path.exists(user_file)
@@ -57,12 +66,12 @@ def u_amount(message):
                 user_fridge = json.load(f)
             f.close()
         if product in user_fridge:
-            user_fridge[product][0] = user_fridge[product][0] + float(amount_converted[0])
+            user_fridge[product][0] = float(user_fridge[product][0]) + float(amount_converted[0])
         else:
             user_fridge[product] = amount_converted
         if float(user_fridge[product][0])<=0:
             del user_fridge[product]
-	
+
         again_f = open (user_file, "w", encoding = "utf-8")
         json.dump(user_fridge, again_f, ensure_ascii=False)
         again_f.close()
@@ -72,13 +81,13 @@ def u_amount(message):
         bot.register_next_step_handler(message, u_product)
 def input_is_correct(line):
     is_correct = False
-    pattern = '^-?[0-9]+\.?([0-9]+)? (шт|л|г|кг|мл)$'
+    pattern = '-?[0-9]+\.?([0-9]+)? (шт|л|г|кг|мл)$'
     res = re.match(pattern, line)
     if res != None:
         is_correct = True
     return is_correct
 
-@bot.message_handler(commands=["fridge"])  
+@bot.message_handler(commands=["fridge"])
 def add_fridge(message):
     if message.text == "/fridge":
         bot.send_message (message.from_user.id, "Давай откроем холодильник и посмотрим, что там есть \U0001F440")
@@ -97,7 +106,7 @@ def add_fridge(message):
                         fr_products = ""
                         fr_text = ""
                         for key, value in user_file_content.items():
-                     
+
                             value_str = str(int(value[0])) + " " + value[1]
                             fr_products = fr_products + key + " " + value_str + "\n"
                             fr_text = "*На твоих полочках:* \n" + fr_products
@@ -155,12 +164,12 @@ def send_recipes(message):
         f.close()
 
 
-        
+
         if breakfasts_are_available:
             ready_to_choose = types.InlineKeyboardMarkup()
             choose_yes = types.InlineKeyboardButton(text="Да \ud83d\ude0b", callback_data=" sure")
             ready_to_choose.add(choose_yes)
-            choose_no = types.InlineKeyboardButton(text="Еще нет \ud83e\udd72", callback_data=" notsure")
+            choose_no = types.InlineKeyboardButton(text="Еще нет \U0001F622", callback_data=" notsure")
             ready_to_choose.add(choose_no)
 
             bot.send_message(message.chat.id, "Вот список доступных завтраков \U0001F373", reply_markup = list_of_recipes)
@@ -209,8 +218,8 @@ def callback_worker(call):
      bot.send_message(call.message.chat.id, "Что? Когда ты выберешь блюдо, я вычту из твоего холодильника количество использованных продуктов", reply_markup = list_of_choices)
 
     for choice in unclickable_choices:
-        if call.data == choice:    
-    
+        if call.data == choice:
+
             user_file = str(call.from_user.id) + ".txt"
             f_rec = open ("recipes.json", "r", encoding="utf-8")
             f_us = open (user_file, "r", encoding = "utf-8")
@@ -231,17 +240,17 @@ def callback_worker(call):
                                     user_fridge_prod_list.append(user_file_fridge[prod][1])
                                     user_file_fridge[prod] = user_fridge_prod_list
                                     if user_file_fridge[prod][0] <= 0:
-                                        not_exist_products.append(prod) 
-                for product in not_exist_products: 
-                    del user_file_fridge[product]                                   
+                                        not_exist_products.append(prod)
+                for product in not_exist_products:
+                    del user_file_fridge[product]
                                              #когда равно 0, удаляем ключ
                 bot.send_message(call.message.chat.id, "Готово \U0001F609")
             f_rec.close()
-            f_us.close() 
+            f_us.close()
             with open (user_file, "w", encoding = "utf-8") as f:
                 json.dump(user_file_fridge, f, ensure_ascii=False)
 
-        
+
     if call.data == "no":
         bot.send_message(call.message.chat.id, "Окей")
     elif call.data == "yes":
